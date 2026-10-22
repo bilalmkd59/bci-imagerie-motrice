@@ -13,3 +13,6 @@ __pycache__/
 # Système
 .DS_Store
 Thumbs.db
+
+# Journaux d'exécution
+results/logs/

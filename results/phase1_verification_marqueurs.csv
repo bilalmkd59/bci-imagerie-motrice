@@ -1,0 +1,10 @@
+sujet,n_essais,decalage_min_s,decalage_max_s,etiquettes_identiques,duree_annotation_s,correlation_epoque_marqueur_plus_0s,correlation_epoque_marqueur_plus_2s,fenetre_paradigme_moabb
+1,288,2.0,2.0,True,4.0,0.9959,-0.1797,"[2, 6]"
+2,288,2.0,2.0,True,4.0,0.9742,-0.0429,"[2, 6]"
+3,288,2.0,2.0,True,4.0,0.989,0.0367,"[2, 6]"
+4,288,2.0,2.0,True,4.0,0.9744,0.0408,"[2, 6]"
+5,288,2.0,2.0,True,4.0,0.9945,-0.0053,"[2, 6]"
+6,288,2.0,2.0,True,4.0,0.9915,-0.1831,"[2, 6]"
+7,288,2.0,2.0,True,4.0,0.9928,-0.063,"[2, 6]"
+8,288,2.0,2.0,True,4.0,0.9924,-0.0839,"[2, 6]"
+9,288,2.0,2.0,True,4.0,0.9945,-0.1712,"[2, 6]"

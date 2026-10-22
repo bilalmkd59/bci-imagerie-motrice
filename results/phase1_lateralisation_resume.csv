@@ -1,0 +1,9 @@
+derivation,bande,classe,cas_controlateraux,indice_median
+laplacien,beta,left_hand,7,-2.01
+laplacien,beta,right_hand,9,-12.85
+laplacien,mu,left_hand,5,-4.38
+laplacien,mu,right_hand,7,-10.66
+ref_commune,beta,left_hand,5,-0.64
+ref_commune,beta,right_hand,8,-4.5
+ref_commune,mu,left_hand,5,-2.5
+ref_commune,mu,right_hand,5,-4.19
