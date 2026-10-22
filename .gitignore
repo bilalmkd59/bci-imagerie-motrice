@@ -1,0 +1,15 @@
+# Environnement virtuel
+.venv/
+
+# Données brutes (téléchargées par MOABB, jamais versionnées)
+data/
+mne_data/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Système
+.DS_Store
+Thumbs.db
