@@ -7,8 +7,10 @@ Les fichiers bruts sont téléchargés une seule fois dans le cache MNE
 import random
 import warnings
 
+import mne
 import numpy as np
 from moabb.datasets import BNCI2014_001
+from moabb.paradigms import LeftRightImagery, MotorImagery
 
 GRAINE = 42
 
@@ -35,3 +37,36 @@ def charger_brut(sujet: int) -> dict:
     """
     dataset = charger_dataset()
     return dataset.get_data(subjects=[sujet])[sujet]
+
+
+# Fenêtre de classification, en secondes après l'indice. Elle est fixée a priori :
+# elle évite la réponse évoquée visuelle des 500 premières ms et couvre le cœur de l'ERD.
+TMIN_CLASSIF, TMAX_CLASSIF = 0.5, 2.5
+FMIN, FMAX = 8, 30  # bandes mu et beta
+
+
+def charger_epoques(sujet: int, tache: str, avec_epoques: bool = False):
+    """Renvoie les essais filtrés en 8-30 Hz d'un sujet, pour les deux sessions.
+
+    tache : "binaire" (main gauche contre main droite) ou "4classes".
+    Le filtrage passe-bande est appliqué par MOABB sur le signal continu : il ne dépend
+    d'aucune étiquette et n'apprend rien sur les données, il n'y a donc pas de fuite.
+
+    Renvoie (X, y, meta) avec X de forme (essais, 22 canaux, échantillons), y les noms
+    de classes et meta un DataFrame (colonne "session" : "0train" ou "1test").
+    Avec `avec_epoques=True`, renvoie aussi l'objet mne.Epochs (utile pour les topographies).
+    """
+    reglages = dict(fmin=FMIN, fmax=FMAX, tmin=TMIN_CLASSIF, tmax=TMAX_CLASSIF)
+    if tache == "binaire":
+        paradigme = LeftRightImagery(**reglages)
+    elif tache == "4classes":
+        paradigme = MotorImagery(n_classes=4, **reglages)
+    else:
+        raise ValueError(f"Tâche inconnue : {tache}")
+    with mne.utils.use_log_level("ERROR"):
+        epoques, y, meta = paradigme.get_data(charger_dataset(), [sujet], return_epochs=True)
+    X = epoques.get_data(copy=True)
+    y = np.asarray(y)
+    if avec_epoques:
+        return X, y, meta, epoques
+    return X, y, meta

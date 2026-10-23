@@ -126,13 +126,89 @@ pd.read_csv("results/phase1_lateralisation_resume.csv")
 ]
 
 
+NOTEBOOK_02 = [
+    md("""
+# 02. Référence classique : CSP + LDA
+
+**Pipeline :** filtrage 8-30 Hz (MOABB, sur le signal continu) puis, dans un `Pipeline` scikit-learn
+réappris à chaque pli : CSP (log-puissance de 6 composantes en binaire, 8 en 4 classes) et LDA.
+Fenêtre : 0,5 à 2,5 s après l'indice, fixée a priori.
+
+**Évaluations :**
+- intra-session : validation croisée stratifiée en 5 plis, dans chaque session ;
+- inter-session : apprentissage sur la session 1, test sur la session 2 (protocole de la compétition).
+
+**Niveau du hasard :** chaque évaluation est refaite 100 fois avec des étiquettes permutées.
+
+Calculs : `src/phase2_csp_lda.py` (ce notebook ne fait que relire les résultats).
+"""),
+    code("""
+import os, sys
+from pathlib import Path
+RACINE = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
+os.chdir(RACINE); sys.path.insert(0, str(RACINE))
+import pandas as pd
+from IPython.display import Image, display
+"""),
+    md("## 1. Résumé sur les 9 sujets (moyenne et écart-type entre sujets)"),
+    code('pd.read_csv("results/phase2_resume.csv").round(3)'),
+    md("""
+## 2. Scores par sujet
+
+Barres : accuracy. Chiffre : kappa de Cohen, kappa = (accuracy observée - accuracy attendue par hasard)
+/ (1 - accuracy attendue). Trait foncé : 95e centile des accuracies obtenues avec étiquettes permutées.
+Une barre sous ce trait n'est pas distinguable du hasard.
+"""),
+    code('display(Image("reports/figures/phase2_scores_par_sujet.png"))'),
+    code("""
+par_sujet = pd.read_csv("results/phase2_scores_par_sujet.csv")
+par_sujet.pivot_table(index="sujet", columns=["tache", "evaluation"], values="kappa").round(3)
+"""),
+    md("""
+## 3. Niveau du hasard et p-valeurs
+
+Avec 100 permutations, la plus petite p-valeur possible est 1/101, soit environ 0,0099.
+Le seuil de hasard est plus élevé en inter-session : un seul ensemble de test, sans moyenne sur des plis,
+donne une distribution de scores aléatoires plus étalée.
+"""),
+    code("""
+scores = pd.read_csv("results/phase2_scores.csv")
+scores[scores["p_valeur"] >= 0.05][["sujet", "tache", "evaluation", "session", "accuracy",
+                                    "hasard_accuracy_p95", "p_valeur"]]
+"""),
+    md("## 4. Matrices de confusion (4 classes, cumulées sur les 9 sujets)"),
+    code('display(Image("reports/figures/phase2_confusion_4classes.png"))'),
+    md("""
+## 5. Filtres et motifs CSP
+
+- Un **filtre** est le jeu de poids appliqué aux 22 électrodes pour fabriquer une composante : c'est ce que
+  le modèle *utilise*. Il annule aussi le bruit commun, d'où son aspect irrégulier, difficile à interpréter.
+- Un **motif** (pattern) est la carte de la source que la composante capte, telle qu'elle se projette sur le scalp :
+  c'est ce qu'il faut *interpréter* physiologiquement (Haufe et al., 2014).
+- Le signe d'une composante est arbitraire : seule la forme de la carte compte.
+
+Sujet 3 (meilleur en validation croisée sur la session 1), puis sujet 5 (le moins bon) et sujet 1.
+"""),
+    code('display(Image("reports/figures/phase2_csp_sujet03.png"))'),
+    code('display(Image("reports/figures/phase2_csp_sujet05.png"))'),
+    code('display(Image("reports/figures/phase2_csp_sujet01.png"))'),
+]
+
+NOTEBOOKS = {
+    "01_exploration_neurophysiologique.ipynb": NOTEBOOK_01,
+    "02_csp_lda.ipynb": NOTEBOOK_02,
+}
+
+
 def main() -> None:
-    nb = nbf.v4.new_notebook()
-    nb.cells = NOTEBOOK_01
-    nb.metadata["kernelspec"] = {"name": "bci-imagerie-motrice", "display_name": "Python (.venv bci-imagerie-motrice)", "language": "python"}
-    chemin = DOSSIER / "01_exploration_neurophysiologique.ipynb"
-    nbf.write(nb, chemin)
-    print(f"Notebook écrit : {chemin.name}")
+    for nom, cellules in NOTEBOOKS.items():
+        nb = nbf.v4.new_notebook()
+        nb.cells = cellules
+        nb.metadata["kernelspec"] = {"name": "bci-imagerie-motrice",
+                                     "display_name": "Python (.venv bci-imagerie-motrice)",
+                                     "language": "python"}
+        nbf.write(nb, DOSSIER / nom)
+        print(f"Notebook écrit : {nom}")
 
 
 if __name__ == "__main__":

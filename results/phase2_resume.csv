@@ -1,0 +1,5 @@
+methode,tache,evaluation,accuracy_moyenne,accuracy_ecart_type,kappa_moyen,kappa_ecart_type,kappa_min,kappa_max,sujets_au_dessus_du_hasard
+CSP+LDA,4classes,inter,0.6242,0.172,0.499,0.2293,0.1435,0.7454,9
+CSP+LDA,4classes,intra,0.6638,0.1877,0.5517,0.2502,0.1343,0.8056,9
+CSP+LDA,binaire,inter,0.7855,0.1657,0.571,0.3314,0.1111,0.9444,8
+CSP+LDA,binaire,intra,0.7805,0.1678,0.561,0.3356,0.0694,0.9375,6
