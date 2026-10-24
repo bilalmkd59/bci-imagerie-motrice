@@ -274,10 +274,65 @@ par_sujet[(par_sujet.tache == "4classes") & (par_sujet.evaluation == "inter")].p
 """),
 ]
 
+NOTEBOOK_04 = [
+    md("""
+# 04. Généralisation à un sujet jamais vu (leave-one-subject-out)
+
+**Question :** un modèle appris sur d'autres personnes fonctionne-t-il sur un nouvel utilisateur,
+sans calibration étiquetée ? C'est l'enjeu pratique d'une BCI « prête à l'emploi ».
+
+**Protocole**, pour chaque sujet testé : apprentissage sur les 2 sessions des 8 autres sujets
+(4 608 essais), test sur la session 2 du sujet, c'est-à-dire exactement les essais de test de
+l'évaluation inter-session des phases 2 et 3. On compare donc, sur les mêmes essais :
+- **modèle propre au sujet** : appris sur sa propre session 1 (phase 3) ;
+- **autres sujets, sans recentrage** ;
+- **autres sujets, avec recentrage riemannien**, la référence du sujet testé étant calculée sans
+  étiquette soit sur sa session 1 (*calibration* : aucun essai de test utilisé), soit sur les
+  essais de test eux-mêmes (*transductif* : courant dans la littérature, mais optimiste).
+
+Code : `src/alignement.py` (recentrage) et `src/phase4_inter_sujets.py`.
+"""),
+    code("""
+import os, sys
+from pathlib import Path
+RACINE = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
+os.chdir(RACINE); sys.path.insert(0, str(RACINE))
+import pandas as pd
+from IPython.display import Image, display
+"""),
+    md("""
+## 1. Pourquoi les sujets ne se ressemblent pas, et ce que fait le recentrage
+
+Sans recentrage, le premier axe de l'ACP (54 % de la variance) sépare surtout les **sujets**, pas les classes :
+chaque personne occupe sa propre région de la variété (anatomie, impédance, placement du casque).
+Le recentrage C -> M^(-1/2) C M^(-1/2) amène la moyenne de chaque sujet sur l'identité : il ne garde que
+les écarts *relatifs* à l'état moyen du sujet, et ces écarts se ressemblent davantage d'une personne à l'autre.
+"""),
+    code('display(Image("reports/figures/phase4_espace_tangent.png"))'),
+    md("## 2. Perte et gain, en moyenne"),
+    code('display(Image("reports/figures/phase4_resume_methodes.png"))'),
+    code("""
+resume = pd.read_csv("results/phase4_resume.csv")
+resume.pivot_table(index=["methode", "alignement"], columns="tache", values="kappa_moyen").round(3)
+"""),
+    code('pd.read_csv("results/phase4_recuperation.csv").round(3)'),
+    md("## 3. Sujet par sujet (TS+LR)"),
+    code('display(Image("reports/figures/phase4_kappa_par_sujet.png"))'),
+    md("""
+## 4. Tests de Wilcoxon appariés (9 sujets, correction de Holm sur les 12 tests)
+"""),
+    code("""
+pd.read_csv("results/phase4_wilcoxon.csv")[["tache", "methode", "alignement_a", "alignement_b",
+    "kappa_moyen_a", "kappa_moyen_b", "difference_moyenne", "sujets_a_meilleur", "p_valeur",
+    "p_valeur_holm"]].round(3)
+"""),
+]
+
 NOTEBOOKS = {
     "01_exploration_neurophysiologique.ipynb": NOTEBOOK_01,
     "02_csp_lda.ipynb": NOTEBOOK_02,
     "03_geometrie_riemannienne.ipynb": NOTEBOOK_03,
+    "04_generalisation_inter_sujets.ipynb": NOTEBOOK_04,
 }
 
 

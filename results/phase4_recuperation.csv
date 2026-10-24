@@ -1,0 +1,5 @@
+tache,alignement,perte_kappa_sans_recentrage,gain_kappa_recentrage,part_de_la_perte_recuperee
+binaire,calibration,0.213,0.0139,0.0652
+binaire,transductif,0.213,0.0694,0.3261
+4classes,calibration,0.3508,0.1085,0.3094
+4classes,transductif,0.3508,0.1656,0.4721
