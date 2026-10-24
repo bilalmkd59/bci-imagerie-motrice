@@ -16,3 +16,7 @@ Thumbs.db
 
 # Journaux d'exécution
 results/logs/
+
+# Archive pour Google Colab (régénérable avec git archive)
+bci-imagerie-motrice.zip
+resultats_phase5_colab.zip
