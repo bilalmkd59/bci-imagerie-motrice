@@ -1,0 +1,7 @@
+sujet,tache,graine,kappa_apprentissage,kappa_test,accuracy_apprentissage,accuracy_test
+7,binaire,42,0.9306,0.0139,0.9653,0.5069
+7,binaire,1,0.9861,0.0556,0.9931,0.5278
+7,binaire,2,0.9306,0.125,0.9653,0.5625
+3,binaire,42,1.0,0.8889,1.0,0.9444
+3,binaire,1,0.8333,0.6389,0.9167,0.8194
+3,binaire,2,1.0,0.875,1.0,0.9375

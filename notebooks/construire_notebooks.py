@@ -1,10 +1,12 @@
 """Génère les notebooks du projet à partir de cellules définies ici (source unique, versionnable).
 
 Usage (depuis la racine du projet) :
-    .venv\\Scripts\\python.exe notebooks\\construire_notebooks.py
+    .venv\\Scripts\\python.exe notebooks\\construire_notebooks.py          (tous les notebooks)
+    .venv\\Scripts\\python.exe notebooks\\construire_notebooks.py 05       (seulement 05_...)
     .venv\\Scripts\\python.exe -m nbconvert --to notebook --execute --inplace notebooks\\01_exploration_neurophysiologique.ipynb
 """
 
+import sys
 from pathlib import Path
 
 import nbformat as nbf
@@ -328,21 +330,107 @@ pd.read_csv("results/phase4_wilcoxon.csv")[["tache", "methode", "alignement_a", 
 """),
 ]
 
+NOTEBOOK_05_COLAB = [
+    md("""
+# 05. EEGNet sur Google Colab (GPU)
+
+Ce notebook exécute **le même script** que la version locale (`src/phase5_eegnet.py`), sur GPU,
+pour les protocoles trop lents sur le processeur du portable :
+- **intra-session** : 180 entraînements (5 plis x 2 sessions x 9 sujets x 2 tâches) ;
+- **leave-one-subject-out** : 36 entraînements sur 4 608 essais chacun.
+
+Le protocole inter-session a été calculé en local (CPU) ; il peut être relancé ici pour vérifier
+la cohérence CPU / GPU (de légers écarts sont normaux : les calculs flottants ne sont pas
+strictement identiques sur les deux matériels).
+
+**Avant de commencer :** menu *Exécution > Modifier le type d'exécution > GPU (T4)*.
+"""),
+    code("!nvidia-smi --query-gpu=name,memory.total --format=csv"),
+    md("""
+## 1. Récupérer le code du projet
+
+Deux possibilités :
+- **dépôt GitHub** : renseigner `DEPOT_GITHUB` ci-dessous ;
+- **archive zip** : sur le PC, depuis la racine du projet, lancer
+  `git archive --format=zip -o bci-imagerie-motrice.zip HEAD`, puis laisser `DEPOT_GITHUB` vide :
+  la cellule demandera de téléverser ce fichier.
+
+L'archive contient le code et les CSV des phases 3 et 4, nécessaires à la comparaison.
+"""),
+    code("""
+DEPOT_GITHUB = ""  # par exemple "https://github.com/<compte>/bci-imagerie-motrice.git"
+
+import os, zipfile
+from google.colab import files
+if DEPOT_GITHUB:
+    !git clone -q {DEPOT_GITHUB} bci-imagerie-motrice
+else:
+    archive = next(iter(files.upload()))
+    with zipfile.ZipFile(archive) as z:
+        z.extractall("bci-imagerie-motrice")
+os.chdir("bci-imagerie-motrice")
+print(sorted(os.listdir("src")))
+"""),
+    md("""
+## 2. Installer les bibliothèques
+
+Mêmes versions que sur le PC pour les bibliothèques du projet ; PyTorch est celui de Colab (version CUDA).
+"""),
+    code("""
+!pip install -q mne==1.13.2 moabb==1.7.2 pyriemann==0.12 braindecode==1.8.1 skorch==1.4.0 scikit-learn==1.9.1
+import torch; print("PyTorch", torch.__version__, "| GPU disponible :", torch.cuda.is_available())
+"""),
+    md("""
+## 3. Lancer les évaluations
+
+Le premier lancement télécharge les données des 9 sujets (environ 700 Mo). La progression s'affiche
+sujet par sujet. Durée non mesurée sur GPU : compter plusieurs dizaines de minutes au minimum.
+"""),
+    code("!python -m src.phase5_eegnet --protocoles intra loso --appareil cuda"),
+    md("""
+## 4. Rapatrier les résultats
+
+Télécharger l'archive, puis copier ses fichiers dans `results/` du projet sur le PC et lancer :
+`.venv\\Scripts\\python.exe -m src.phase5_eegnet --comparer-seulement`
+"""),
+    code("""
+import glob
+with zipfile.ZipFile("resultats_phase5_colab.zip", "w") as z:
+    for chemin in glob.glob("results/phase5_*.csv"):
+        z.write(chemin)
+        print("ajouté :", chemin)
+files.download("resultats_phase5_colab.zip")
+"""),
+]
+
 NOTEBOOKS = {
     "01_exploration_neurophysiologique.ipynb": NOTEBOOK_01,
     "02_csp_lda.ipynb": NOTEBOOK_02,
     "03_geometrie_riemannienne.ipynb": NOTEBOOK_03,
     "04_generalisation_inter_sujets.ipynb": NOTEBOOK_04,
+    "05_eegnet_colab.ipynb": NOTEBOOK_05_COLAB,
 }
+NOTEBOOKS_COLAB = {"05_eegnet_colab.ipynb"}
 
 
 def main() -> None:
+    # Sans argument : tous les notebooks. Avec des préfixes (ex. « 05 ») : seulement ceux-là,
+    # pour ne pas effacer les sorties des notebooks déjà exécutés.
+    prefixes = sys.argv[1:]
     for nom, cellules in NOTEBOOKS.items():
+        if prefixes and not any(nom.startswith(p) for p in prefixes):
+            continue
         nb = nbf.v4.new_notebook()
         nb.cells = cellules
-        nb.metadata["kernelspec"] = {"name": "bci-imagerie-motrice",
-                                     "display_name": "Python (.venv bci-imagerie-motrice)",
-                                     "language": "python"}
+        if nom in NOTEBOOKS_COLAB:
+            nb.metadata["kernelspec"] = {"name": "python3", "display_name": "Python 3",
+                                         "language": "python"}
+            nb.metadata["accelerator"] = "GPU"
+            nb.metadata["colab"] = {"provenance": [], "gpuType": "T4"}
+        else:
+            nb.metadata["kernelspec"] = {"name": "bci-imagerie-motrice",
+                                         "display_name": "Python (.venv bci-imagerie-motrice)",
+                                         "language": "python"}
         nbf.write(nb, DOSSIER / nom)
         print(f"Notebook écrit : {nom}")
 

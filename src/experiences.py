@@ -16,11 +16,12 @@ SUJETS = list(range(1, 10))
 TACHES = ["binaire", "4classes"]
 
 
-def evaluer_sujet(sujet: int, tache: str, methodes: dict,
-                  avec_hasard: bool = True) -> tuple[list, list]:
+def evaluer_sujet(sujet: int, tache: str, methodes: dict, avec_hasard: bool = True,
+                  evaluations: tuple = ("intra", "inter")) -> tuple[list, list]:
     """Évalue chaque méthode en intra-session (chaque session) puis en inter-session.
 
     `methodes` associe un nom à une fabrique de pipeline prenant la tâche en argument.
+    `evaluations` permet de ne faire que l'une des deux (utile pour les méthodes lentes).
     Renvoie (lignes de scores, tableaux de prédictions essai par essai).
     """
     X, y, meta = charger_epoques(sujet, tache)
@@ -39,25 +40,28 @@ def evaluer_sujet(sujet: int, tache: str, methodes: dict,
                 "evaluation": evaluation, "session": nom_session,
                 "y_vrai": y_vrai, "y_pred": y_pred}))
 
-        for nom_session in ["0train", "1test"]:
+        for nom_session in (["0train", "1test"] if "intra" in evaluations else []):
             masque = session == nom_session
             resultat, y_pred = evaluer_intra_session(fabrique, X[masque], y[masque],
                                                      avec_hasard=avec_hasard)
             enregistrer("intra", nom_session, resultat, y[masque], y_pred)
 
-        app, test = session == "0train", session == "1test"
-        resultat, y_pred = evaluer_inter_session(fabrique, X[app], y[app], X[test], y[test],
-                                                 avec_hasard=avec_hasard)
-        enregistrer("inter", "0train->1test", resultat, y[test], y_pred)
+        if "inter" in evaluations:
+            app, test = session == "0train", session == "1test"
+            resultat, y_pred = evaluer_inter_session(fabrique, X[app], y[app], X[test], y[test],
+                                                     avec_hasard=avec_hasard)
+            enregistrer("inter", "0train->1test", resultat, y[test], y_pred)
     return lignes, predictions
 
 
-def evaluer_tous(methodes: dict, avec_hasard: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]:
+def evaluer_tous(methodes: dict, avec_hasard: bool = True,
+                 evaluations: tuple = ("intra", "inter")) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Évalue toutes les méthodes sur les 9 sujets et les 2 tâches, en affichant la progression."""
     lignes, predictions = [], []
     for tache in TACHES:
         for sujet in SUJETS:
-            l, p = evaluer_sujet(sujet, tache, methodes, avec_hasard=avec_hasard)
+            l, p = evaluer_sujet(sujet, tache, methodes, avec_hasard=avec_hasard,
+                                 evaluations=evaluations)
             lignes += l
             predictions += p
             for nom in methodes:

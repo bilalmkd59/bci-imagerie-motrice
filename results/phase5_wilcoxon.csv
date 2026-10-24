@@ -1,0 +1,7 @@
+protocole,tache,methode_a,methode_b,kappa_moyen_a,kappa_moyen_b,difference_moyenne,sujets_a_meilleur,statistique_W,p_valeur,p_valeur_holm
+inter,4classes,EEGNet,CSP+LDA,0.4774,0.499,-0.0216,2,16.0,0.4961,0.4961
+inter,4classes,EEGNet,MDM,0.4774,0.4321,0.0453,6,10.5,0.1758,0.3516
+inter,4classes,EEGNet,TS+LR,0.4774,0.5617,-0.0844,1,5.0,0.0352,0.1055
+inter,binaire,EEGNet,CSP+LDA,0.4259,0.571,-0.1451,0,0.0,0.0039,0.0234
+inter,binaire,EEGNet,MDM,0.4259,0.5278,-0.1019,1,1.0,0.0078,0.0391
+inter,binaire,EEGNet,TS+LR,0.4259,0.5911,-0.1652,1,2.0,0.0117,0.0469
