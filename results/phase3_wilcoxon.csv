@@ -1,0 +1,13 @@
+tache,evaluation,methode_a,methode_b,kappa_moyen_a,kappa_moyen_b,difference_moyenne,difference_mediane,sujets_a_meilleur,sujets_egalite,statistique_W,p_valeur,p_valeur_holm
+binaire,intra,TS+LR,CSP+LDA,0.6111,0.561,0.0502,0.0347,8,0,7.0,0.0742,0.4219
+binaire,intra,MDM,CSP+LDA,0.5147,0.561,-0.0463,-0.0347,2,2,3.5,0.0938,0.4219
+binaire,intra,TS+LR,MDM,0.6111,0.5147,0.0965,0.1042,9,0,0.0,0.0039,0.0469
+binaire,inter,TS+LR,CSP+LDA,0.591,0.571,0.0201,0.0417,6,0,17.0,0.5703,1.0
+binaire,inter,MDM,CSP+LDA,0.5278,0.571,-0.0432,-0.0139,4,0,21.5,0.9375,1.0
+binaire,inter,TS+LR,MDM,0.591,0.5278,0.0633,0.0278,5,1,8.5,0.2188,0.6562
+4classes,intra,TS+LR,CSP+LDA,0.5931,0.5517,0.0414,0.044,7,0,3.0,0.0156,0.125
+4classes,intra,MDM,CSP+LDA,0.4681,0.5517,-0.0836,-0.0972,1,0,2.0,0.0117,0.1055
+4classes,intra,TS+LR,MDM,0.5931,0.4681,0.125,0.1273,9,0,0.0,0.0039,0.0469
+4classes,inter,TS+LR,CSP+LDA,0.5617,0.499,0.0628,0.0556,7,0,5.0,0.0391,0.2734
+4classes,inter,MDM,CSP+LDA,0.4321,0.499,-0.0669,-0.0648,1,0,7.0,0.0703,0.4219
+4classes,inter,TS+LR,MDM,0.5617,0.4321,0.1296,0.1204,9,0,0.0,0.0039,0.0469

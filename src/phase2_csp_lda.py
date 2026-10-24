@@ -14,8 +14,6 @@ import os
 
 os.environ.setdefault("MNE_LOGGING_LEVEL", "ERROR")  # aussi pour les processus parallèles
 
-from functools import partial
-
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
@@ -23,60 +21,16 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix
 
 from src.chargement import charger_epoques, fixer_graine
-from src.evaluation import evaluer_inter_session, evaluer_intra_session
+from src.experiences import SUJETS, TACHES, evaluer_tous, resumer
 from src.figures import (CARTE_ERD, COULEURS_CLASSES, ENCRE_DISCRETE, ENCRE_SECONDAIRE,
                          NOMS_CLASSES, RACINE, appliquer_style, sauvegarder)
 from src.pipelines import csp_lda
 
-SUJETS = list(range(1, 10))
-TACHES = ["binaire", "4classes"]
 NOMS_TACHES = {"binaire": "Main gauche contre main droite", "4classes": "4 classes"}
 NOMS_EVALUATIONS = {"intra": "Intra-session (validation croisée 5 plis)",
                     "inter": "Inter-session (session 1 vers session 2)"}
 METHODE = "CSP+LDA"
 DOSSIER_RESULTATS = RACINE / "results"
-
-
-def evaluer_sujet(sujet: int, tache: str) -> tuple[list, list]:
-    """Évalue CSP + LDA sur un sujet : intra-session (chaque session) puis inter-session."""
-    X, y, meta = charger_epoques(sujet, tache)
-    session = meta["session"].to_numpy()
-    fabrique = partial(csp_lda, tache)
-    lignes, predictions = [], []
-
-    def enregistrer(evaluation, nom_session, resultat, y_vrai, y_pred):
-        lignes.append({"methode": METHODE, "sujet": sujet, "tache": tache,
-                       "evaluation": evaluation, "session": nom_session,
-                       "n_essais_test": len(y_vrai), **resultat})
-        predictions.append(pd.DataFrame({"methode": METHODE, "sujet": sujet, "tache": tache,
-                                         "evaluation": evaluation, "session": nom_session,
-                                         "y_vrai": y_vrai, "y_pred": y_pred}))
-
-    for nom_session in ["0train", "1test"]:
-        masque = session == nom_session
-        resultat, y_pred = evaluer_intra_session(fabrique, X[masque], y[masque])
-        enregistrer("intra", nom_session, resultat, y[masque], y_pred)
-
-    app, test = session == "0train", session == "1test"
-    resultat, y_pred = evaluer_inter_session(fabrique, X[app], y[app], X[test], y[test])
-    enregistrer("inter", "0train->1test", resultat, y[test], y_pred)
-    return lignes, predictions
-
-
-def resumer(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Un score par sujet (intra = moyenne des deux sessions), puis moyenne ± écart-type."""
-    par_sujet = (scores.groupby(["methode", "tache", "evaluation", "sujet"], as_index=False)
-                 [["accuracy", "kappa", "hasard_accuracy_p95", "p_valeur"]]
-                 .agg({"accuracy": "mean", "kappa": "mean", "hasard_accuracy_p95": "mean",
-                       "p_valeur": "max"}))
-    par_sujet["au_dessus_du_hasard"] = par_sujet["p_valeur"] < 0.05
-    resume = par_sujet.groupby(["methode", "tache", "evaluation"]).agg(
-        accuracy_moyenne=("accuracy", "mean"), accuracy_ecart_type=("accuracy", "std"),
-        kappa_moyen=("kappa", "mean"), kappa_ecart_type=("kappa", "std"),
-        kappa_min=("kappa", "min"), kappa_max=("kappa", "max"),
-        sujets_au_dessus_du_hasard=("au_dessus_du_hasard", "sum"),
-    ).reset_index()
-    return par_sujet, resume
 
 
 def figure_scores(par_sujet: pd.DataFrame, nom: str) -> None:
@@ -170,18 +124,7 @@ def main() -> None:
     mne.set_log_level("ERROR")
     appliquer_style()
 
-    lignes, predictions = [], []
-    for tache in TACHES:
-        for sujet in SUJETS:
-            l, p = evaluer_sujet(sujet, tache)
-            lignes += l
-            predictions += p
-            resume_sujet = ", ".join(f"{x['evaluation']} {x['session']} : acc {x['accuracy']:.3f} "
-                                     f"kappa {x['kappa']:.3f}" for x in l)
-            print(f"{tache} sujet {sujet} | {resume_sujet}", flush=True)
-
-    scores = pd.DataFrame(lignes)
-    predictions = pd.concat(predictions, ignore_index=True)
+    scores, predictions = evaluer_tous({METHODE: csp_lda})
     scores.round(4).to_csv(DOSSIER_RESULTATS / "phase2_scores.csv", index=False)
     predictions.to_csv(DOSSIER_RESULTATS / "phase2_predictions.csv", index=False)
     par_sujet, resume = resumer(scores)

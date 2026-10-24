@@ -194,9 +194,90 @@ Sujet 3 (meilleur en validation croisée sur la session 1), puis sujet 5 (le moi
     code('display(Image("reports/figures/phase2_csp_sujet01.png"))'),
 ]
 
+NOTEBOOK_03 = [
+    md("""
+# 03. Géométrie riemannienne : espace tangent et MDM
+
+**Idée :** au lieu d'apprendre des filtres spatiaux (CSP), on décrit chaque essai directement par sa
+**matrice de covariance spatiale** C (22 x 22) : sa diagonale contient la puissance de chaque électrode
+dans la bande 8-30 Hz, ses termes hors diagonale la façon dont les électrodes varient ensemble.
+L'ERD, baisse de puissance localisée, se lit donc directement dans C.
+
+**Méthodes** (dans `src/pipelines.py`) :
+- **TS+LR** : covariances (estimateur OAS), projection dans l'espace tangent autour de la moyenne
+  riemannienne des essais d'apprentissage, puis régression logistique ;
+- **MDM** : une moyenne riemannienne par classe, chaque essai est attribué à la moyenne la plus proche.
+
+Même boucle, mêmes essais, mêmes plis que CSP + LDA (phase 2). Calculs : `src/phase3_riemann.py`.
+"""),
+    code("""
+import os, sys
+from pathlib import Path
+RACINE = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
+os.chdir(RACINE); sys.path.insert(0, str(RACINE))
+import pandas as pd
+from IPython.display import Image, display
+"""),
+    md("""
+## 1. Pourquoi les covariances vivent sur une variété
+
+Une matrice de covariance est **symétrique définie positive** (SPD) : toute combinaison des électrodes
+a une variance strictement positive. Cet ensemble n'est pas un espace vectoriel « plat » :
+- la différence de deux covariances peut ne plus être une covariance (variances négatives) ;
+- en 2 x 2, les matrices [[a, b], [b, c]] SPD vérifient a > 0 et ac > b² : elles remplissent l'intérieur
+  d'un **cône**, et le bord du cône (matrices singulières) est à distance infinie.
+
+La géométrie riemannienne mesure les distances *le long* de cette surface courbe. Sa distance,
+δ(A, B) = ||log(A^(-1/2) B A^(-1/2))||, a deux propriétés utiles pour l'EEG :
+- **invariance affine** : elle ne change pas si on applique la même transformation linéaire inversible
+  aux deux essais (par exemple un changement de référence ou de gain des électrodes) ;
+- **pas d'effet de gonflement** : la moyenne euclidienne de deux covariances de même volume mais
+  d'orientations différentes a un volume (déterminant) plus grand que chacune ; la moyenne
+  riemannienne le conserve.
+"""),
+    code('display(Image("reports/figures/phase3_intuition_variete.png"))'),
+    md("""
+**L'espace tangent** : comme on « déplie » localement la Terre sur une carte plane autour d'une ville,
+on projette toutes les covariances sur le plan tangent à la variété au point moyen des essais
+d'apprentissage. Près de ce point, les distances sont bien conservées, et chaque matrice devient un
+vecteur de 22 x 23 / 2 = 253 nombres, utilisable par n'importe quel classifieur linéaire.
+Le point moyen est appris dans `TangentSpace.fit`, donc dans le pipeline : il est réappris à chaque pli.
+
+## 2. Résultats : moyenne ± écart-type sur les 9 sujets
+"""),
+    code("""
+resume = pd.read_csv("results/phase3_resume.csv")
+resume.pivot_table(index="methode", columns=["tache", "evaluation"], values="kappa_moyen").round(3)
+"""),
+    code("resume.round(3)"),
+    md("""
+## 3. Comparaison appariée et test de Wilcoxon
+
+Chaque sujet est sa propre référence : on compare les méthodes *sur le même sujet*, ce qui élimine
+la très forte variabilité entre sujets. Avec 9 sujets, le test des rangs signés de Wilcoxon
+(non paramétrique, sans hypothèse de normalité) a une p-valeur minimale de 2/512, soit environ 0,004.
+12 tests sont faits (3 paires x 2 tâches x 2 évaluations) : la correction de Holm contrôle le risque
+d'obtenir au moins un faux positif.
+"""),
+    code('display(Image("reports/figures/phase3_comparaison_methodes.png"))'),
+    code("""
+pd.read_csv("results/phase3_wilcoxon.csv")[["tache", "evaluation", "methode_a", "methode_b",
+    "kappa_moyen_a", "kappa_moyen_b", "difference_moyenne", "sujets_a_meilleur", "p_valeur",
+    "p_valeur_holm"]].round(3)
+"""),
+    md("## 4. Protocole de la compétition : 4 classes, session 1 vers session 2"),
+    code('display(Image("reports/figures/phase3_kappa_4classes_inter.png"))'),
+    code("""
+par_sujet = pd.read_csv("results/phase3_scores_par_sujet.csv")
+par_sujet[(par_sujet.tache == "4classes") & (par_sujet.evaluation == "inter")].pivot(
+    index="sujet", columns="methode", values="kappa").round(3)
+"""),
+]
+
 NOTEBOOKS = {
     "01_exploration_neurophysiologique.ipynb": NOTEBOOK_01,
     "02_csp_lda.ipynb": NOTEBOOK_02,
+    "03_geometrie_riemannienne.ipynb": NOTEBOOK_03,
 }
 
 

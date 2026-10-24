@@ -49,18 +49,34 @@ def predire_apprentissage_test(fabrique: Callable, X_app: np.ndarray, y_app: np.
     return fabrique().fit(X_app, y_app).predict(X_test)
 
 
-def niveau_hasard(evaluer: Callable, y: np.ndarray, score_observe: float,
+def _permutation_intra(y_perm: np.ndarray, fabrique: Callable, X: np.ndarray) -> dict:
+    """Validation croisée complète avec étiquettes permutées (elles deviennent la « vérité »)."""
+    return scores(y_perm, predire_validation_croisee(fabrique, X, y_perm))
+
+
+def _permutation_inter(y_perm: np.ndarray, fabrique: Callable, X_app: np.ndarray,
+                       X_test: np.ndarray, y_test: np.ndarray) -> dict:
+    """Apprentissage avec étiquettes permutées, test sur les vraies étiquettes de la session 2."""
+    return scores(y_test, predire_apprentissage_test(fabrique, X_app, y_perm, X_test))
+
+
+def niveau_hasard(evaluer: Callable, y: np.ndarray, score_observe: float, donnees: dict,
                   n_permutations: int = N_PERMUTATIONS, graine: int = GRAINE) -> dict:
     """Estime le niveau du hasard par permutation des étiquettes.
 
-    `evaluer(y_permute)` doit refaire toute l'évaluation (apprentissage compris) avec
-    les étiquettes permutées et renvoyer un dictionnaire de scores. La distribution
+    `evaluer(y_permute, **donnees)` doit refaire toute l'évaluation (apprentissage compris)
+    avec les étiquettes permutées et renvoyer un dictionnaire de scores. La distribution
     obtenue est celle d'un modèle qui n'a aucune information réelle sur les classes.
     La p-valeur est (nombre de permutations au moins aussi bonnes + 1) / (n + 1).
+
+    Les données passent en arguments explicites (et non dans une fonction anonyme) :
+    joblib peut alors les partager entre processus par projection mémoire au lieu de
+    les recopier pour chaque permutation.
     """
     generateur = np.random.default_rng(graine)
     permutations = [generateur.permutation(y) for _ in range(n_permutations)]
-    resultats = Parallel(n_jobs=-1)(delayed(evaluer)(y_perm) for y_perm in permutations)
+    resultats = Parallel(n_jobs=-1)(delayed(evaluer)(y_perm, **donnees)
+                                    for y_perm in permutations)
     acc = np.array([r["accuracy"] for r in resultats])
     kappa = np.array([r["kappa"] for r in resultats])
     return {
@@ -78,9 +94,8 @@ def evaluer_intra_session(fabrique: Callable, X: np.ndarray, y: np.ndarray,
     resultat = scores(y, y_pred)
     if avec_hasard:
         # En validation croisée, les étiquettes permutées deviennent la « vérité » de l'expérience
-        resultat |= niveau_hasard(
-            lambda y_perm: scores(y_perm, predire_validation_croisee(fabrique, X, y_perm)),
-            y, resultat["accuracy"])
+        resultat |= niveau_hasard(_permutation_intra, y, resultat["accuracy"],
+                                  {"fabrique": fabrique, "X": X})
     return resultat, y_pred
 
 
@@ -92,8 +107,7 @@ def evaluer_inter_session(fabrique: Callable, X_app: np.ndarray, y_app: np.ndarr
     resultat = scores(y_test, y_pred)
     if avec_hasard:
         # On permute les étiquettes d'apprentissage ; le test garde ses vraies étiquettes
-        resultat |= niveau_hasard(
-            lambda y_perm: scores(y_test, predire_apprentissage_test(fabrique, X_app, y_perm,
-                                                                     X_test)),
-            y_app, resultat["accuracy"])
+        resultat |= niveau_hasard(_permutation_inter, y_app, resultat["accuracy"],
+                                  {"fabrique": fabrique, "X_app": X_app, "X_test": X_test,
+                                   "y_test": y_test})
     return resultat, y_pred

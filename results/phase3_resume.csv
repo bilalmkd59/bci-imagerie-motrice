@@ -1,0 +1,13 @@
+methode,tache,evaluation,accuracy_moyenne,accuracy_ecart_type,kappa_moyen,kappa_ecart_type,kappa_min,kappa_max
+CSP+LDA,4classes,inter,0.6242,0.172,0.499,0.2293,0.1435,0.7454
+CSP+LDA,4classes,intra,0.6638,0.1877,0.5517,0.2502,0.1343,0.8056
+CSP+LDA,binaire,inter,0.7855,0.1657,0.571,0.3314,0.1111,0.9444
+CSP+LDA,binaire,intra,0.7805,0.1678,0.561,0.3356,0.0694,0.9375
+MDM,4classes,inter,0.5741,0.141,0.4321,0.188,0.1713,0.6574
+MDM,4classes,intra,0.6011,0.1604,0.4681,0.2139,0.1597,0.6736
+MDM,binaire,inter,0.7639,0.1695,0.5278,0.339,0.1528,0.9583
+MDM,binaire,intra,0.7573,0.1614,0.5147,0.3228,0.1042,0.9375
+TS+LR,4classes,inter,0.6713,0.1688,0.5617,0.225,0.2593,0.8194
+TS+LR,4classes,intra,0.6948,0.1819,0.5931,0.2426,0.1944,0.8495
+TS+LR,binaire,inter,0.7955,0.1469,0.591,0.2939,0.1528,0.9167
+TS+LR,binaire,intra,0.8056,0.1514,0.6111,0.3028,0.1667,0.9653
