@@ -153,6 +153,25 @@ def comparer() -> None:
     tests["p_valeur_holm"] = correction_holm(tests["p_valeur"])
     tests.round(4).to_csv(DOSSIER_RESULTATS / "phase5_wilcoxon.csv", index=False)
 
+    # Effet de l'alignement euclidien sur EEGNet en leave-one-subject-out (si calculé)
+    chemin_loso = DOSSIER_RESULTATS / "phase5_scores_loso.csv"
+    if chemin_loso.exists():
+        loso = pd.read_csv(chemin_loso)
+        lignes_alignement = []
+        for tache, sous in loso.groupby("tache"):
+            kappa = sous.pivot(index="sujet", columns="alignement", values="kappa")
+            test = wilcoxon(kappa["calibration"], kappa["aucun"])
+            lignes_alignement.append({
+                "tache": tache, "kappa_moyen_sans_alignement": kappa["aucun"].mean(),
+                "kappa_moyen_avec_alignement": kappa["calibration"].mean(),
+                "difference_moyenne": (kappa["calibration"] - kappa["aucun"]).mean(),
+                "sujets_ameliores": int((kappa["calibration"] > kappa["aucun"]).sum()),
+                "p_valeur": test.pvalue})
+        alignement = pd.DataFrame(lignes_alignement)
+        alignement.round(4).to_csv(DOSSIER_RESULTATS / "phase5_alignement_loso.csv", index=False)
+        print("\nEEGNet, sujet jamais vu : effet de l'alignement euclidien (référence : session 1)")
+        print(alignement.round(3).to_string(index=False))
+
     protocoles = [p for p in PROTOCOLES if p in set(tableau["protocole"])]
     fig, axes = plt.subplots(len(TACHES), len(protocoles), figsize=(5.2 * len(protocoles), 7.4),
                              sharey=True, squeeze=False, constrained_layout=True)
@@ -179,7 +198,7 @@ def comparer() -> None:
             ax.grid(axis="y")
             titre = f"{NOMS_TACHES[tache]}, {NOMS_PROTOCOLES[protocole]}"
             if protocole == "loso":
-                titre += "\n(recentrage / alignement, référence : session 1)"
+                titre += "\n(recentrage ou alignement, référence : session 1 ; CSP+LDA sans)"
             ax.set_title(titre, fontsize=9)
             if j == 0:
                 ax.set_ylabel("Kappa de Cohen")
