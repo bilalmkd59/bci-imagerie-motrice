@@ -622,7 +622,7 @@ EEGNet,5,binaire,inter,0train->1test,left_hand,left_hand
 EEGNet,5,binaire,inter,0train->1test,right_hand,left_hand
 EEGNet,5,binaire,inter,0train->1test,right_hand,left_hand
 EEGNet,5,binaire,inter,0train->1test,right_hand,left_hand
-EEGNet,5,binaire,inter,0train->1test,left_hand,right_hand
+EEGNet,5,binaire,inter,0train->1test,left_hand,left_hand
 EEGNet,5,binaire,inter,0train->1test,left_hand,right_hand
 EEGNet,5,binaire,inter,0train->1test,left_hand,left_hand
 EEGNet,5,binaire,inter,0train->1test,right_hand,right_hand
@@ -877,7 +877,7 @@ EEGNet,7,binaire,inter,0train->1test,left_hand,left_hand
 EEGNet,7,binaire,inter,0train->1test,left_hand,right_hand
 EEGNet,7,binaire,inter,0train->1test,right_hand,left_hand
 EEGNet,7,binaire,inter,0train->1test,left_hand,right_hand
-EEGNet,7,binaire,inter,0train->1test,left_hand,left_hand
+EEGNet,7,binaire,inter,0train->1test,left_hand,right_hand
 EEGNet,7,binaire,inter,0train->1test,left_hand,left_hand
 EEGNet,7,binaire,inter,0train->1test,left_hand,left_hand
 EEGNet,7,binaire,inter,0train->1test,right_hand,right_hand

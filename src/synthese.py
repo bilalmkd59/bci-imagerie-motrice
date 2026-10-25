@@ -292,17 +292,38 @@ def figure(tableau: pd.DataFrame) -> None:
 
 # ---------------------------------------------------------------- assemblage
 
+def tableau_durees() -> str | None:
+    """Durées mesurées lors de la dernière relance complète (results/durees_execution.csv)."""
+    chemin = RESULTATS / "durees_execution.csv"
+    if not chemin.exists():
+        return None
+    durees = pd.read_csv(chemin)
+    lignes = ["| Étape | Durée mesurée |", "|---|---|"]
+    lignes += [f"| {d.description} | {nombre(d.duree_minutes, 1)} min |"
+               for d in durees.itertuples()]
+    lignes.append(f"| **Total** | **{nombre(durees['duree_minutes'].sum(), 1)} min** |")
+    return "\n".join(lignes)
+
+
+def remplacer_entre_balises(texte: str, debut: str, fin: str, contenu: str) -> str:
+    if debut not in texte or fin not in texte:
+        return texte
+    avant, reste = texte.split(debut, 1)
+    _, apres = reste.split(fin, 1)
+    return f"{avant}{debut}\n{contenu}\n{fin}{apres}"
+
+
 def mettre_a_jour_readme(tableau_readme: str) -> None:
     chemin = RACINE / "README.md"
     if not chemin.exists():
         return
     texte = chemin.read_text(encoding="utf-8")
-    if BALISE_DEBUT not in texte or BALISE_FIN not in texte:
-        return
-    avant, reste = texte.split(BALISE_DEBUT, 1)
-    _, apres = reste.split(BALISE_FIN, 1)
-    chemin.write_text(f"{avant}{BALISE_DEBUT}\n{tableau_readme}\n{BALISE_FIN}{apres}",
-                      encoding="utf-8")
+    texte = remplacer_entre_balises(texte, BALISE_DEBUT, BALISE_FIN, tableau_readme)
+    durees = tableau_durees()
+    if durees:
+        texte = remplacer_entre_balises(texte, "<!-- DUREES:DEBUT -->", "<!-- DUREES:FIN -->",
+                                        durees)
+    chemin.write_text(texte, encoding="utf-8")
 
 
 def main() -> None:

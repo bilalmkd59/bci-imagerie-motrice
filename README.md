@@ -100,8 +100,29 @@ python -m venv .venv
 .venv\Scripts\python.exe -m src.tout_relancer --etapes phase3 synthese
 ```
 
-Les durées mesurées de chaque étape sont enregistrées dans `results/durees_execution.csv`. EEGNet en intra-session
-et en inter-sujets se calcule sur GPU avec `notebooks/05_eegnet_colab.ipynb`.
+Durées mesurées lors de la dernière relance complète (portable, Intel Core i3-1315U, sans GPU) :
+
+<!-- DUREES:DEBUT -->
+| Étape | Durée mesurée |
+|---|---|
+| versions et chargement du sujet 1 | 0,3 min |
+| exploration neurophysiologique (ERD) | 4,9 min |
+| CSP + LDA avec 100 permutations | 66,4 min |
+| TS+LR et MDM, tests appariés | 3,0 min |
+| leave-one-subject-out et recentrage | 5,3 min |
+| EEGNet inter-session (CPU) | 56,4 min |
+| EEGNet : graines et surapprentissage | 17,7 min |
+| results/synthese.md et README | 0,1 min |
+| génération et exécution des notebooks 01 à 04 | 0,7 min |
+| **Total** | **154,8 min** |
+<!-- DUREES:FIN -->
+
+EEGNet en intra-session et en inter-sujets se calcule sur GPU avec `notebooks/05_eegnet_colab.ipynb`.
+
+**Reproductibilité vérifiée :** une relance complète depuis zéro redonne à l'identique tous les fichiers de résultats et
+toutes les figures des méthodes classiques. Seul EEGNet sur CPU peut différer très légèrement entre deux exécutions
+(un essai sur 144 pour 2 personnes sur 9 lors de la vérification), car certains calculs parallèles de PyTorch ne sont
+pas strictement déterministes.
 
 ## Données
 

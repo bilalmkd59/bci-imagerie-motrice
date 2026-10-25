@@ -3,9 +3,9 @@ EEGNet,1,binaire,inter,0train->1test,144,0.8056,0.6111,cpu
 EEGNet,2,binaire,inter,0train->1test,144,0.5278,0.0556,cpu
 EEGNet,3,binaire,inter,0train->1test,144,0.9444,0.8889,cpu
 EEGNet,4,binaire,inter,0train->1test,144,0.6667,0.3333,cpu
-EEGNet,5,binaire,inter,0train->1test,144,0.5347,0.0694,cpu
+EEGNet,5,binaire,inter,0train->1test,144,0.5417,0.0833,cpu
 EEGNet,6,binaire,inter,0train->1test,144,0.5972,0.1944,cpu
-EEGNet,7,binaire,inter,0train->1test,144,0.5139,0.0278,cpu
+EEGNet,7,binaire,inter,0train->1test,144,0.5069,0.0139,cpu
 EEGNet,8,binaire,inter,0train->1test,144,0.9097,0.8194,cpu
 EEGNet,9,binaire,inter,0train->1test,144,0.9167,0.8333,cpu
 EEGNet,1,4classes,inter,0train->1test,288,0.7326,0.6435,cpu

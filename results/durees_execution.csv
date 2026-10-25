@@ -1,0 +1,10 @@
+etape,description,duree_minutes
+environnement,versions et chargement du sujet 1,0.3
+phase1,exploration neurophysiologique (ERD),4.9
+phase2,CSP + LDA avec 100 permutations,66.4
+phase3,"TS+LR et MDM, tests appariés",3.0
+phase4,leave-one-subject-out et recentrage,5.3
+phase5,EEGNet inter-session (CPU),56.4
+phase5_diagnostic,EEGNet : graines et surapprentissage,17.7
+synthese,results/synthese.md et README,0.1
+notebooks,génération et exécution des notebooks 01 à 04,0.7
